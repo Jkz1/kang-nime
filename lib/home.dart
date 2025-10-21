@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kang_nime/utils/api_hit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,6 +9,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,6 +59,13 @@ class _HomePageState extends State<HomePage> {
               height: 200,
               color: Colors.blue,
               child: Center(child: Text("tes Area")),
+            ),
+            Column(
+              children: [
+                ElevatedButton(onPressed: (){
+                  fetchDataFromApi();
+                }, child: Text("Test API"))
+              ]
             ),
           ],
         ),

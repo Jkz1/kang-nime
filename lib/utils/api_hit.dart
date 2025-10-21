@@ -1,0 +1,19 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+const String baseUrl = "https://api.jikan.moe/v4/top/anime";
+
+Future<dynamic> fetchDataFromApi() async {
+  try {
+    final response = await http.get(Uri.parse(baseUrl));
+
+    if (response.statusCode == 200) {
+      var res = jsonDecode(response.body)["data"];
+      return res;
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    throw Exception('Error occurred while fetching data: $e');
+  }
+}
