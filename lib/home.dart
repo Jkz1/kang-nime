@@ -19,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   int currentPage = 0;
   bool loadingMore = false;
   bool _showFab = false;
+  int _currIndex = 0;
 
   @override
   void initState() {
@@ -42,7 +43,12 @@ class _HomePageState extends State<HomePage> {
     loadingMore = true;
     try {
       currentPage += 1;
-      var res = await fetchDataFromApi(page: currentPage);
+      var res;
+      if (_currIndex == 0) {
+        res = await fetchDataAnime(page: currentPage);
+      } else {
+        res = await fetchDataManga(page: currentPage);
+      }
       if (hasMore == false) return;
       if (res.isEmpty) {
         hasMore = false;
@@ -57,6 +63,23 @@ class _HomePageState extends State<HomePage> {
         loading = false;
       });
     }
+  }
+
+  void onSelectBottomNav(int index) {
+    setState(() {
+      _currIndex = index;
+      animeList = [];
+      loading = true;
+      hasMore = true;
+      currentPage = 0;
+    });
+    fetchData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -155,6 +178,42 @@ class _HomePageState extends State<HomePage> {
                 child: const Icon(Icons.keyboard_double_arrow_up),
               )
               : null,
+
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orangeAccent,
+              blurRadius: 10,
+              spreadRadius: -2,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currIndex,
+            onTap: (index) {
+              onSelectBottomNav(index);
+            },
+            backgroundColor: Colors.black,
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.white70,
+            type: BottomNavigationBarType.fixed,
+            showUnselectedLabels: true,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Anime'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.menu_book),
+                label: 'Manga',
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

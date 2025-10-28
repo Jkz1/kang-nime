@@ -3,10 +3,26 @@ import 'package:http/http.dart' as http;
 
 const String baseUrl = "https://api.jikan.moe/v4";
 
-Future<dynamic> fetchDataFromApi({int page = 1}) async {
+Future<dynamic> fetchDataAnime({int page = 1}) async {
 
   try {
     final response = await http.get(Uri.parse('$baseUrl/top/anime?page=$page'));
+
+    if (response.statusCode == 200) {
+      var res = jsonDecode(response.body)["data"];
+      return res;
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    throw Exception('Error occurred while fetching data: $e');
+  }
+}
+
+Future<dynamic> fetchDataManga({int page = 1}) async {
+
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/top/manga?page=$page'));
 
     if (response.statusCode == 200) {
       var res = jsonDecode(response.body)["data"];
