@@ -10,29 +10,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late List<dynamic> animeList;
+  final ScrollController _scrollController = ScrollController();
+
+  List<dynamic> animeList = [];
 
   bool loading = true;
+  bool hasMore = true;
+  int currentPage = 0;
+  bool loadingMore = false;
+  bool _showFab = false;
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 100) {
+        fetchData();
+      }
+      if (_scrollController.offset > 300 && !_showFab) {
+        setState(() => _showFab = true);
+      } else if (_scrollController.offset <= 300 && _showFab) {
+        setState(() => _showFab = false);
+      }
+    });
   }
 
-  void fetchData() async{
-
+  void fetchData() async {
+    if (loadingMore) return;
+    loadingMore = true;
     try {
-      animeList = await fetchDataFromApi();
-      // Lakukan sesuatu dengan data jika perlu
-      print("success");
+      currentPage += 1;
+      var res = await fetchDataFromApi(page: currentPage);
+      if (hasMore == false) return;
+      if (res.isEmpty) {
+        hasMore = false;
+      } else {
+        animeList.addAll(res);
+      }
+      loadingMore = false;
     } catch (e) {
       animeList = [];
-      print("error: $e");
-      // Tangani error jika perlu
     } finally {
       setState(() {
-        print("loading selesai");
         loading = false;
       });
     }
@@ -42,12 +63,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
-          // 🧠 SliverAppBar yang bisa sembunyi & muncul
           SliverAppBar(
             backgroundColor: Colors.black,
-            title: const Text("KangNime",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            title: const Text(
+              "KangNime",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             centerTitle: true,
             floating: true, // muncul saat scroll sedikit ke atas
             snap: true, // animasi halus munculnya
@@ -55,8 +81,10 @@ class _HomePageState extends State<HomePage> {
               preferredSize: const Size.fromHeight(60),
               child: Container(
                 color: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -65,7 +93,9 @@ class _HomePageState extends State<HomePage> {
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -83,42 +113,48 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              height: 5,
-              color: Colors.orange,
-            ),
-          ),
+          SliverToBoxAdapter(child: Container(height: 5, color: Colors.orange)),
           SliverPadding(
             padding: const EdgeInsets.all(10),
-            sliver: 
-            loading ? const SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ):
-            SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final anime = animeList[index];
-                  return AnimeCard(
-                    title: anime['title'],
-                    imageUrl: anime['images']['jpg']['image_url'],
-                    rating: anime['score'],
-                  );
-                },
-                childCount: animeList.length,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 anime per baris
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.68,
-              ),
-            ),
+            sliver:
+                loading
+                    ? const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                    : SliverGrid(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final anime = animeList[index];
+                        return AnimeCard(
+                          index: index,
+                          title: anime['title'],
+                          imageUrl: anime['images']['jpg']['image_url'],
+                          rating: anime['score'],
+                        );
+                      }, childCount: animeList.length),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // 2 anime per baris
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.68,
+                          ),
+                    ),
           ),
         ],
       ),
+      floatingActionButton:
+          _showFab
+              ? FloatingActionButton(
+                onPressed: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 700),
+                    curve: Curves.easeInOutQuart,
+                  );
+                },
+                child: const Icon(Icons.keyboard_double_arrow_up),
+              )
+              : null,
     );
   }
 }

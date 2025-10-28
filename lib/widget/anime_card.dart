@@ -4,12 +4,14 @@ class AnimeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final double rating;
+  final int index; // 👈 Tambahan baru
 
   const AnimeCard({
     super.key,
     required this.title,
     required this.imageUrl,
     required this.rating,
+    required this.index, // 👈 Tambahan baru
   });
 
   @override
@@ -17,7 +19,7 @@ class AnimeCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected: $title')),
+          SnackBar(content: Text('Selected: $title (#${index + 1})')),
         );
       },
       child: Card(
@@ -99,6 +101,27 @@ class AnimeCard extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+            // 👇 Index di pojok kiri atas
+            Positioned(
+              left: 8,
+              top: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '#${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
