@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
       currentPage += 1;
       var res;
       if (_currIndex == 0) {
-        res = await fetchDataAnime(page: currentPage);
+        res = await fetchDataAnime(page: currentPage, filter: selectedFilter ?? "", rating: selectedRating ?? "");
       } else {
         res = await fetchDataManga(page: currentPage);
       }
@@ -118,6 +118,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   void applyFilters() {
+    setState(() {
+      animeList = [];
+      loading = true;
+      hasMore = true;
+      currentPage = 0;
+    });
+    fetchData();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -403,7 +410,7 @@ class _HomePageState extends State<HomePage> {
                           index: index,
                           title: anime['title'],
                           imageUrl: anime['images']['jpg']['image_url'],
-                          rating: anime['score'],
+                          rating: anime['score'] ?? 0.0,
                         );
                       }, childCount: animeList.length),
                       gridDelegate:
